@@ -4,11 +4,10 @@ import org.aeonbits.owner.Config;
 
 @Config.Sources("classpath:config.properties")
 public interface ServerConfig  extends Config {
-    @Key("url")
-    String url();
+    @Key("url1")
+    String url1();
 
-    String hostname();
-    @DefaultValue("42")
-    int maxThreads();
+    @Key("url2")
+    String url2();
 
 }
