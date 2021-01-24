@@ -45,6 +45,7 @@ public class TwoTestClass {
         logger.info("Переход на сайт теле2");
         driver.findElement(By.id("searchNumber")).sendKeys("97");
         logger.info("Поиск номера ");
+        logger.info("Ожидание пропажи элемента загрузки");
         new WebDriverWait(driver, 15).ignoring(NoSuchElementException.class).until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".loader-overlay")));
         logger.info("Номера найдены");
     }
