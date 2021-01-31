@@ -8,6 +8,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.concurrent.TimeUnit;
@@ -25,44 +26,63 @@ public class ThreeTestClass {
     public void setUp() {
         WebDriverManager.chromedriver().setup();
         logger.info("Драйвер поднят");
+        //ChromeOptions options = new ChromeOptions();
+        //options.addArguments("user-data-dir=~AppData\\Local\\Google\\Chrome\\User Data");
+        //options.addArguments("--profile-directory=Default");
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-        wait=new WebDriverWait(driver, 3);
+        wait=new WebDriverWait(driver, 10);
         driver.get(cfg.url1());
         driver.manage().window().maximize();
     }
 
     @Test
-    public void test1() throws InterruptedException {
+    public void test1() {
         logger.info("Открыт сайт яндекс");
-        driver.findElement(By.cssSelector("[data-zone-data='{\"id\":\"91542578\"}']")).click();
+
+        click(By.cssSelector("[data-zone-data='{\"id\":\"91542578\"}']"));
         logger.info("Переход на вкладку Электроника");
-        driver.findElement(By.xpath("//*[text()='Смартфоны']")).click();
+
+        click(By.xpath("//*[text()='Смартфоны']"));
         logger.info("Выбор пункта Смартфоны");
-        driver.findElement(By.xpath("//*[@id='7893318_153061']/..")).click();
+
+        WebElement el = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("._2NFZmOqZwM [data-tid='42de86b']")));
+        el.click();
+        logger.info("Ожидание появления уведомления");
+
+        click(By.xpath("//*[@id='7893318_153061']/.."));
         logger.info("Выбор Samsung");
-        driver.findElement(By.xpath("//*[@id='7893318_7701962']/..")).click();
+
+        click(By.xpath("//*[@id='7893318_7701962']/.."));
         logger.info("Выбор Xiaomi");
-        driver.findElement(By.cssSelector("[data-autotest-id='dprice']")).click();
+
+        click(By.cssSelector("[data-autotest-id='dprice']"));
         logger.info("Сортировка по цене");
+
         wait.until(ExpectedConditions.stalenessOf(driver.findElement(By.cssSelector("._2LvbieS_AO._1oZmP3Lbj2"))));
         logger.info("Ожидание прогрузки");
+
         String css1="._1_ABPFjOJQ";//путь к наименованию плашки "Товар {имя товара} добавлен к сравнению"
-        driver.findElements(By.xpath("//span[contains(text(),'Samsung')]//ancestor::article//div[@class='_1CXljk9rtd']")).get(0).click();;
+
+        WebElement el5=driver.findElements(By.xpath("//span[contains(text(),'Samsung')]//ancestor::article//div[@class='_1CXljk9rtd']")).get(0);
+        el5.click();
         logger.info("Добавили к сравнению первый Samsung");
+
         String name1=driver.findElements(By.xpath("//*[@data-tid='ce80a508' and contains(text(),'Samsung')]")).get(0).getText();
         String name2=driver.findElement(By.cssSelector(css1)).getText();
         assertEquals("Товар "+name1+" добавлен к сравнению",name2);
         logger.info("Проверка текста после добавления в сравнение Samsung");
-        driver.findElements(By.xpath("//span[contains(text(),'Xiaomi')]//ancestor::article//div[@class='_1CXljk9rtd']")).get(0).click();;
+
+        WebElement el4=driver.findElements(By.xpath("//span[contains(text(),'Xiaomi')]//ancestor::article//div[@class='_1CXljk9rtd']")).get(0);
+        el4.click();
         logger.info("Добавили к сравнению первый Xiaomi");
+
         String name3=driver.findElements(By.xpath("//*[@data-tid='ce80a508' and contains(text(),'Xiaomi')]")).get(0).getText();
         String name4=driver.findElement(By.cssSelector(css1)).getText();
         assertEquals("Товар "+name3+" добавлен к сравнению",name4);
         logger.info("Проверка текста после добавления в сравнение Xiaomi");
-        Thread.sleep(1000);
-        WebElement el3 = driver.findElement(By.cssSelector(".PaE7W1mhJ5 [data-tid='42de86b']"));
-        click(el3);
+
+        click(By.cssSelector(".PaE7W1mhJ5 [data-tid='42de86b']"));
         logger.info("Нажали кнопку сравнить");
         int count = driver.findElements(By.cssSelector("._1P4gDT01yj._34m6bYsU7p ._3B3AAKx4qr div.LwwocgVx0q")).size();
         assertEquals(2,count);
@@ -70,9 +90,19 @@ public class ThreeTestClass {
     }
 
 
-    public void click(WebElement element){
-        wait.until(elementToBeClickable(element));
-        element.click();
+    public void click(By by){
+        WebElement element = wait.until(elementToBeClickable(by));
+        int attempts = 0;
+        while(attempts < 3) {
+            try {
+                element.click();
+                break;
+            }
+            catch(ElementClickInterceptedException e) {
+                logger.error("Ошибка ElementClickInterceptedException клика на " + by);
+            }
+            attempts++;
+        }
     }
 
     @After
