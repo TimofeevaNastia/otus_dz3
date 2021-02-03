@@ -26,12 +26,15 @@ public class ThreeTestClass {
     public void setUp() {
         WebDriverManager.chromedriver().setup();
         logger.info("Драйвер поднят");
-        //ChromeOptions options = new ChromeOptions();
-        //options.addArguments("user-data-dir=~AppData\\Local\\Google\\Chrome\\User Data");
-        //options.addArguments("--profile-directory=Default");
+        /*//если появляется капча
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("user-data-dir=~AppData\\Local\\Google\\Chrome\\User Data");
+        options.addArguments("--profile-directory=Default");
+        driver = new ChromeDriver(options);
+        */
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-        wait=new WebDriverWait(driver, 10);
+        wait=new WebDriverWait(driver, 5);
         driver.get(cfg.url1());
         driver.manage().window().maximize();
     }
@@ -40,15 +43,20 @@ public class ThreeTestClass {
     public void test1() {
         logger.info("Открыт сайт яндекс");
 
+        modalWin(By.cssSelector("._3Gytho_FnH[data-tid='8ceb3828'] button"));
+        logger.info("Закрытие всплывающего окна");
+
         click(By.cssSelector("[data-zone-data='{\"id\":\"91542578\"}']"));
         logger.info("Переход на вкладку Электроника");
 
         click(By.xpath("//*[text()='Смартфоны']"));
         logger.info("Выбор пункта Смартфоны");
 
-        WebElement el = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("._2NFZmOqZwM [data-tid='42de86b']")));
-        el.click();
+        modalWin(By.cssSelector("._2NFZmOqZwM [data-tid='42de86b']"));
         logger.info("Ожидание появления уведомления");
+
+        modalWin(By.cssSelector("._1guxbPKMJ6 button"));
+        logger.info("Закрытие всплывающего окна");
 
         click(By.xpath("//*[@id='7893318_153061']/.."));
         logger.info("Выбор Samsung");
@@ -65,19 +73,19 @@ public class ThreeTestClass {
         String css1="._1_ABPFjOJQ";//путь к наименованию плашки "Товар {имя товара} добавлен к сравнению"
 
         WebElement el5=driver.findElements(By.xpath("//span[contains(text(),'Samsung')]//ancestor::article//div[@class='_1CXljk9rtd']")).get(0);
-        el5.click();
+        click(el5);
         logger.info("Добавили к сравнению первый Samsung");
 
-        String name1=driver.findElements(By.xpath("//*[@data-tid='ce80a508' and contains(text(),'Samsung')]")).get(0).getText();
+        String name1=driver.findElements(By.xpath("//*[@data-zone-name='snippetList']//*[contains(text(),'Samsung')]")).get(0).getText();
         String name2=driver.findElement(By.cssSelector(css1)).getText();
         assertEquals("Товар "+name1+" добавлен к сравнению",name2);
         logger.info("Проверка текста после добавления в сравнение Samsung");
 
         WebElement el4=driver.findElements(By.xpath("//span[contains(text(),'Xiaomi')]//ancestor::article//div[@class='_1CXljk9rtd']")).get(0);
-        el4.click();
+        click(el4);
         logger.info("Добавили к сравнению первый Xiaomi");
 
-        String name3=driver.findElements(By.xpath("//*[@data-tid='ce80a508' and contains(text(),'Xiaomi')]")).get(0).getText();
+        String name3=driver.findElements(By.xpath("//*[@data-zone-name='snippetList']//*[contains(text(),'Xiaomi')]")).get(0).getText();
         String name4=driver.findElement(By.cssSelector(css1)).getText();
         assertEquals("Товар "+name3+" добавлен к сравнению",name4);
         logger.info("Проверка текста после добавления в сравнение Xiaomi");
@@ -87,6 +95,7 @@ public class ThreeTestClass {
         int count = driver.findElements(By.cssSelector("._1P4gDT01yj._34m6bYsU7p ._3B3AAKx4qr div.LwwocgVx0q")).size();
         assertEquals(2,count);
         logger.info("Проверка, что добавлено две позиции");
+
     }
 
 
@@ -102,6 +111,33 @@ public class ThreeTestClass {
                 logger.error("Ошибка ElementClickInterceptedException клика на " + by);
             }
             attempts++;
+        }
+    }
+
+    public void click(WebElement element){
+        int attempts = 0;
+        while(attempts < 3) {
+            try {
+                element.click();
+                break;
+            }
+            catch(ElementClickInterceptedException e) {
+                logger.error("Ошибка ElementClickInterceptedException клика на " +element);
+            }
+            attempts++;
+        }
+    }
+
+    public void modalWin(By by){
+        try {
+            WebElement win = wait.until(ExpectedConditions.visibilityOfElementLocated(by));
+            win.click();
+        }
+        catch(NoSuchElementException e) {
+            logger.error("Ошибка NoSuchElementException ");
+        }
+        catch(TimeoutException e) {
+            logger.error("Ошибка TimeoutException ");
         }
     }
 
